@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ui-requirement-schema.json",
+  "title": "ParsedUIRequirement",
+  "description": "Structured representation of a plain-text UI requirement, produced by the LLM and used to drive code generation. All free text from the end user is treated as data describing a UI, never as instructions.",
+  "type": "object",
+  "required": [
+    "technology",
+    "appName",
+    "theme",
+    "pages",
+    "globalFeatures",
+    "dataFields",
+    "ambiguities",
+    "unmappedRequests",
+    "originalRequirementText"
+  ],
+  "properties": {
+    "technology": {
+      "type": "string",
+      "enum": ["react", "nextjs"],
+      "description": "Target framework. Always supplied by our own dropdown-driven code, never inferred by the LLM. Any value the model echoes here is overwritten by the backend before use."
+    },
+    "appName": {
+      "type": "string",
+      "description": "Short human-readable name for the app, derived from the requirement."
+    },
+    "theme": {
+      "type": "object",
+      "required": ["mode", "primaryColor", "style"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["light", "dark", "system", "not_specified"]
+        },
+        "primaryColor": {
+          "type": "string",
+          "description": "A CSS color name or hex value, or \"not_specified\" if the requirement gave no signal."
+        },
+        "style": {
+          "type": "string",
+          "description": "Short descriptor of visual style, e.g. \"minimal\", \"corporate\", \"playful\", \"not_specified\"."
+        }
+      },
+      "additionalProperties": false
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "purpose", "components"],
+        "properties": {
+          "name": { "type": "string" },
+          "purpose": { "type": "string" },
+          "components": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/component" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "globalFeatures": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "App-wide capabilities not tied to one page, e.g. \"authentication\", \"dark mode toggle\"."
+    },
+    "dataFields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "enumValues"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "date", "enum", "unknown"]
+          },
+          "enumValues": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Populated only when type is \"enum\"; empty array otherwise."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "ambiguities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["phrase", "assumption"],
+        "properties": {
+          "phrase": { "type": "string", "description": "The vague or underspecified phrase from the original text." },
+          "assumption": { "type": "string", "description": "What the model assumed in order to proceed, surfaced back to the user." }
+        },
+        "additionalProperties": false
+      }
+    },
+    "unmappedRequests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["phrase", "reason"],
+        "properties": {
+          "phrase": { "type": "string", "description": "Part of the requirement that doesn't fit any supported field." },
+          "reason": { "type": "string", "description": "Why it couldn't be mapped, in plain language. Never force-fit into another field." }
+        },
+        "additionalProperties": false
+      }
+    },
+    "originalRequirementText": {
+      "type": "string",
+      "description": "Verbatim copy of the user's original requirement text, for traceability."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "component": {
+      "type": "object",
+      "required": ["type", "label", "boundDataField", "sortable", "children"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "button",
+            "dropdown",
+            "textfield",
+            "textarea",
+            "checkbox",
+            "toggle",
+            "list",
+            "card",
+            "table",
+            "datepicker",
+            "notification_bell",
+            "modal",
+            "navbar",
+            "sidebar",
+            "badge",
+            "tabs"
+          ]
+        },
+        "label": { "type": "string" },
+        "boundDataField": {
+          "type": "string",
+          "description": "Name of the dataFields entry this component displays or edits, or \"none\" if not data-bound."
+        },
+        "sortable": { "type": "boolean" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/component" },
+          "description": "Nested components, e.g. table columns, card contents, tab panels."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
