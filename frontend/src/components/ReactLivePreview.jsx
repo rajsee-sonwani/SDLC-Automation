@@ -1,6 +1,26 @@
-import { useMemo, useCallback, useEffect, useRef, useState } from 'react'
+import { useMemo, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live'
+import { LiveProvider, LiveError, LivePreview, LiveContext } from 'react-live'
+import PreviewFallback from './PreviewFallback.jsx'
+import ViewToggle from './ViewToggle.jsx'
+import CodeView from './CodeView.jsx'
+
+// react-live's <LiveError> renders null when there's no error, so there's no
+// prop telling a parent "an error is currently showing" -- read it directly
+// off LiveContext instead, to decide whether to render this block (raw error
+// detail + the zip-download fallback) at all.
+function RuntimeErrorPanel({ projectId }) {
+  const { error } = useContext(LiveContext)
+  if (!error) return null
+  return (
+    <div className="shrink-0 border-t border-red-200">
+      <LiveError className="overflow-auto max-h-40 whitespace-pre-wrap p-3 text-xs text-red-700 bg-red-50" />
+      <div className="p-3 pt-0">
+        <PreviewFallback projectId={projectId} />
+      </div>
+    </div>
+  )
+}
 
 const ENTRY_FILE = 'src/App.jsx'
 
@@ -13,30 +33,28 @@ const ENTRY_FILE = 'src/App.jsx'
 // this document would style our own tool's UI too, so instead we mount
 // LivePreview inside an isolated <iframe> (via a portal into its contentDocument)
 // and load the CDN script only inside that iframe's document.
+// Declared via srcDoc rather than written in with doc.open()/doc.write() after
+// mount: writing into a freshly-created iframe races the browser's commit of
+// its initial about:blank document, which can discard the written document --
+// including the Tailwind script -- leaving the generated app rendered
+// completely unstyled. That race is timing-dependent (and StrictMode's
+// double-invoked effects made it likelier), so it showed up as a preview that
+// was correctly styled on one load and all-default-styles on the next.
+const PREVIEW_DOCUMENT = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<script src="https://cdn.tailwindcss.com"><\/script>
+</head><body style="margin:0;min-height:100%"></body></html>`
+
 function IsolatedPreviewFrame({ children }) {
-  const iframeRef = useRef(null)
   const [mountNode, setMountNode] = useState(null)
-
-  useEffect(() => {
-    const iframe = iframeRef.current
-    const doc = iframe.contentDocument
-    doc.open()
-    doc.write(
-      '<!DOCTYPE html><html><head><meta charset="utf-8"></head>' +
-        '<body style="margin:0;min-height:100%"></body></html>'
-    )
-    doc.close()
-
-    const script = doc.createElement('script')
-    script.src = 'https://cdn.tailwindcss.com'
-    doc.head.appendChild(script)
-
-    setMountNode(doc.body)
-  }, [])
 
   return (
     <>
-      <iframe ref={iframeRef} title="Live preview" className="w-full h-full border-0 block" />
+      <iframe
+        title="Live preview"
+        srcDoc={PREVIEW_DOCUMENT}
+        onLoad={(e) => setMountNode(e.currentTarget.contentDocument.body)}
+        className="w-full h-full border-0 block"
+      />
       {mountNode && createPortal(children, mountNode)}
     </>
   )
@@ -150,7 +168,8 @@ export function combineFilesForReactLive(files) {
   return `${blocks.join('\n\n')}\n\nrender(<${entryName} />);`
 }
 
-export default function ReactLivePreview({ files }) {
+export default function ReactLivePreview({ files, projectId }) {
+  const [view, setView] = useState('preview')
   const { code, buildError } = useMemo(() => {
     try {
       return { code: combineFilesForReactLive(files), buildError: null }
@@ -162,26 +181,40 @@ export default function ReactLivePreview({ files }) {
   const scope = { useState, useEffect, useRef, useMemo, useCallback }
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm flex flex-col" style={{ height: 'calc(100vh - 140px)' }}>
+    <div className="flex-1 min-h-0 rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm flex flex-col">
       {buildError ? (
-        <pre className="flex-1 overflow-auto whitespace-pre-wrap p-4 text-sm text-red-700 bg-red-50">{buildError}</pre>
+        <div className="flex-1 overflow-auto p-4 space-y-3">
+          <PreviewFallback projectId={projectId} />
+          <details className="text-xs text-red-700">
+            <summary className="cursor-pointer">Show error detail</summary>
+            <pre className="whitespace-pre-wrap mt-2">{buildError}</pre>
+          </details>
+        </div>
       ) : (
         <LiveProvider code={code} scope={scope} noInline>
+          <div className="shrink-0 flex justify-end px-3 py-2 border-b border-slate-200 bg-white">
+            <ViewToggle view={view} onChange={setView} />
+          </div>
           <div className="flex-1 flex min-h-0">
-            <div className="w-[15%] min-w-[160px] overflow-auto bg-slate-900 text-sm">
-              <LiveEditor />
-            </div>
-            {/* overflow-hidden, not overflow-auto: scrolling of the generated app's
-                own content now happens inside the iframe's document, not this pane --
-                letting this pane scroll too would double-scroll and let the iframe
-                grow past its bounds instead of the app's own layout handling it. */}
-            <div className="flex-1 min-w-0 overflow-hidden bg-white">
+            {/* Both panes stay mounted at all times and are only hidden via CSS --
+                conditionally unmounting the preview pane would tear down and
+                recreate the iframe (see IsolatedPreviewFrame) every time the user
+                switches back from Code, resetting any state inside the generated
+                app. overflow-hidden, not overflow-auto, on the preview pane:
+                scrolling of the generated app's own content happens inside the
+                iframe's document, not this pane -- letting this pane scroll too
+                would double-scroll and let the iframe grow past its bounds instead
+                of the app's own layout handling it. */}
+            <div className={`flex-1 min-w-0 overflow-hidden bg-white ${view === 'code' ? 'hidden' : ''}`}>
               <IsolatedPreviewFrame>
                 <LivePreview />
               </IsolatedPreviewFrame>
             </div>
+            <div className={`flex-1 min-w-0 min-h-0 ${view === 'preview' ? 'hidden' : ''}`}>
+              <CodeView files={files} />
+            </div>
           </div>
-          <LiveError className="shrink-0 overflow-auto max-h-40 whitespace-pre-wrap p-3 text-xs text-red-700 bg-red-50 border-t border-red-200" />
+          <RuntimeErrorPanel projectId={projectId} />
         </LiveProvider>
       )}
     </div>

@@ -1,0 +1,45 @@
+{
+  "technology": "react",
+  "appName": "Quarterly Revenue Tracker",
+  "theme": {
+    "mode": "not_specified",
+    "primaryColor": "not_specified",
+    "style": "card-based"
+  },
+  "pages": [
+    {
+      "name": "Quarterly Revenue Tracker",
+      "purpose": "Track quarterly revenue and log new entries",
+      "components": [
+        {
+          "type": "card",
+          "label": "Quarterly Revenue Tracker",
+          "boundDataField": "none",
+          "sortable": false,
+          "children": [
+            {
+              "type": "button",
+              "label": "Log Entry",
+              "boundDataField": "none",
+              "sortable": false,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalFeatures": [],
+  "dataFields": [],
+  "ambiguities": [],
+  "unmappedRequests": [],
+  "originalRequirementText": "",
+  "developer_system_prompt": null,
+  "ux_reference": {
+    "filename": "ref.html",
+    "kind": "html",
+    "content": "<html><body><div class=\"zx-marker-card\"><h1>Quarterly Revenue Tracker</h1><button class=\"zx-marker-btn\">Log Entry</button></div></body></html>"
+  },
+  "approved": true,
+  "approved_at": "2026-09-22T12:43:34.301743+00:00"
+}

@@ -1,0 +1,87 @@
+{
+  "technology": "react",
+  "appName": "Todo App",
+  "theme": {
+    "mode": "dark",
+    "primaryColor": "unspecified",
+    "style": "minimal"
+  },
+  "pages": [
+    {
+      "name": "Tasks",
+      "purpose": "Manage to-do tasks, set priorities, and track completion",
+      "components": [
+        {
+          "type": "textfield",
+          "label": "Task Description",
+          "boundDataField": "taskTitle",
+          "sortable": false,
+          "children": []
+        },
+        {
+          "type": "dropdown",
+          "label": "Priority Level",
+          "boundDataField": "priority",
+          "sortable": false,
+          "children": []
+        },
+        {
+          "type": "button",
+          "label": "Add Task",
+          "boundDataField": "none",
+          "sortable": false,
+          "children": []
+        },
+        {
+          "type": "list",
+          "label": "Task List",
+          "boundDataField": "none",
+          "sortable": false,
+          "children": [
+            {
+              "type": "checkbox",
+              "label": "Mark Complete",
+              "boundDataField": "isCompleted",
+              "sortable": false,
+              "children": []
+            },
+            {
+              "type": "badge",
+              "label": "Priority",
+              "boundDataField": "priority",
+              "sortable": false,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalFeatures": [],
+  "dataFields": [
+    {
+      "name": "taskTitle",
+      "type": "string",
+      "enumValues": []
+    },
+    {
+      "name": "priority",
+      "type": "enum",
+      "enumValues": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    {
+      "name": "isCompleted",
+      "type": "boolean",
+      "enumValues": []
+    }
+  ],
+  "ambiguities": [],
+  "unmappedRequests": [],
+  "originalRequirementText": "A simple to-do app with a dark theme, priority levels (low, medium, high), and a way to mark tasks complete",
+  "approved": true,
+  "approved_at": "2026-09-21T19:17:53.949464+00:00"
+}

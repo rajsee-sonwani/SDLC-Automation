@@ -1,0 +1,116 @@
+{
+  "technology": "react",
+  "appName": "TodoApp",
+  "theme": {
+    "mode": "dark",
+    "primaryColor": "unspecified",
+    "style": "simple"
+  },
+  "pages": [
+    {
+      "name": "Tasks",
+      "purpose": "Manage to-do items with priority levels and completion tracking",
+      "components": [
+        {
+          "type": "card",
+          "label": "Task Input Section",
+          "boundDataField": "none",
+          "sortable": false,
+          "children": [
+            {
+              "type": "textfield",
+              "label": "Task Title",
+              "boundDataField": "taskTitle",
+              "sortable": false,
+              "children": []
+            },
+            {
+              "type": "dropdown",
+              "label": "Priority Level",
+              "boundDataField": "taskPriority",
+              "sortable": false,
+              "children": []
+            },
+            {
+              "type": "button",
+              "label": "Add Task",
+              "boundDataField": "none",
+              "sortable": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "label": "Task List",
+          "boundDataField": "none",
+          "sortable": false,
+          "children": [
+            {
+              "type": "card",
+              "label": "Task Item",
+              "boundDataField": "none",
+              "sortable": false,
+              "children": [
+                {
+                  "type": "checkbox",
+                  "label": "Mark Complete",
+                  "boundDataField": "isCompleted",
+                  "sortable": false,
+                  "children": []
+                },
+                {
+                  "type": "badge",
+                  "label": "Priority Badge",
+                  "boundDataField": "taskPriority",
+                  "sortable": false,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalFeatures": [
+    "Task Management",
+    "Priority Levels",
+    "Dark Theme Support"
+  ],
+  "dataFields": [
+    {
+      "name": "taskTitle",
+      "type": "string",
+      "enumValues": []
+    },
+    {
+      "name": "taskPriority",
+      "type": "enum",
+      "enumValues": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    {
+      "name": "isCompleted",
+      "type": "boolean",
+      "enumValues": []
+    }
+  ],
+  "ambiguities": [
+    {
+      "phrase": "simple to-do app",
+      "assumption": "Rendered as a single-page dashboard for managing tasks."
+    },
+    {
+      "phrase": "priority levels (low, medium, high)",
+      "assumption": "Provided a dropdown selector during task entry and badge indicators in the list."
+    }
+  ],
+  "unmappedRequests": [],
+  "originalRequirementText": "A simple to-do app with a dark theme, priority levels (low, medium, high), and a way to mark tasks complete",
+  "approved": true,
+  "approved_at": "2026-09-21T19:16:57.805128+00:00"
+}

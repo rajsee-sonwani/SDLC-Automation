@@ -3,3 +3,6 @@ uvicorn[standard]
 google-genai
 jsonschema
 python-dotenv
+python-multipart
+pyyaml
+pypdf

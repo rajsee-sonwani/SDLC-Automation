@@ -1,15 +1,34 @@
 import { useState } from 'react'
-import { getProject, submitFeedback, exportProjectUrl } from '../api/client'
+import { approveProject, getProject, submitFeedback, exportProjectUrl } from '../api/client'
+import { useRetryStatus } from '../hooks/useRetryStatus'
 
 export default function FeedbackPanel({ project, onUpdated }) {
   const [feedbackText, setFeedbackText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [changelog, setChangelog] = useState([])
+  const [isApproving, setIsApproving] = useState(false)
+  const [approveError, setApproveError] = useState(null)
+  const retryStatus = useRetryStatus(isSubmitting)
 
   const { requirement } = project
   const ambiguities = requirement.ambiguities || []
   const unmappedRequests = requirement.unmappedRequests || []
+  const isApproved = requirement.approved === true
+
+  const handleApprove = async () => {
+    if (isApproving || isApproved) return
+    setIsApproving(true)
+    setApproveError(null)
+    try {
+      await approveProject(project.project_id)
+      onUpdated(await getProject(project.project_id))
+    } catch (err) {
+      setApproveError(err.message || 'Failed to approve this project.')
+    } finally {
+      setIsApproving(false)
+    }
+  }
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault()
@@ -32,14 +51,33 @@ export default function FeedbackPanel({ project, onUpdated }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-slate-700 truncate">{requirement.appName}</h2>
-        <a
-          href={exportProjectUrl(project.project_id)}
-          className="shrink-0 text-sm font-medium text-blue-600 hover:text-blue-700 px-4 py-2 rounded-xl border border-blue-200 hover:bg-blue-50 transition-colors"
-        >
-          Download .zip
-        </a>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-700 truncate">{requirement.appName}</h2>
+          <div className="shrink-0 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleApprove}
+              disabled={isApproving || isApproved}
+              className={`text-sm font-medium px-4 py-2 rounded-xl border transition-colors ${
+                isApproved
+                  ? 'text-green-700 border-green-200 bg-green-50 cursor-default'
+                  : 'text-slate-600 border-slate-200 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed'
+              }`}
+            >
+              {isApproved ? 'Approved ✓' : isApproving ? 'Approving...' : 'Approve'}
+            </button>
+            <a
+              href={exportProjectUrl(project.project_id)}
+              className="text-sm font-medium text-blue-600 hover:text-blue-700 px-4 py-2 rounded-xl border border-blue-200 hover:bg-blue-50 transition-colors"
+            >
+              Download .zip
+            </a>
+          </div>
+        </div>
+        {approveError && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{approveError}</p>
+        )}
       </div>
 
       {(ambiguities.length > 0 || unmappedRequests.length > 0) && (
@@ -92,6 +130,12 @@ export default function FeedbackPanel({ project, onUpdated }) {
             {isSubmitting ? 'Applying...' : 'Submit Feedback'}
           </button>
         </div>
+        {isSubmitting && retryStatus.retrying && (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+            Having trouble reaching the AI model, retrying... (attempt {retryStatus.attempt} of{' '}
+            {retryStatus.max_attempts})
+          </p>
+        )}
         {error && (
           <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>
         )}

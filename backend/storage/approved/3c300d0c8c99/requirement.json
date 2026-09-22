@@ -1,0 +1,103 @@
+{
+  "technology": "nextjs",
+  "appName": "Event Scheduler",
+  "theme": {
+    "mode": "not_specified",
+    "primaryColor": "#3B82F6",
+    "style": "clean"
+  },
+  "pages": [
+    {
+      "name": "Event Schedule",
+      "purpose": "Create and view scheduled events sorted by date",
+      "components": [
+        {
+          "type": "navbar",
+          "label": "Navigation",
+          "boundDataField": "none",
+          "sortable": false,
+          "children": [
+            {
+              "type": "button",
+              "label": "Dashboard",
+              "boundDataField": "none",
+              "sortable": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "type": "card",
+          "label": "Create New Event",
+          "boundDataField": "none",
+          "sortable": false,
+          "children": [
+            {
+              "type": "textfield",
+              "label": "Event Title",
+              "boundDataField": "title",
+              "sortable": false,
+              "children": []
+            },
+            {
+              "type": "datepicker",
+              "label": "Event Date",
+              "boundDataField": "date",
+              "sortable": false,
+              "children": []
+            },
+            {
+              "type": "textfield",
+              "label": "Location",
+              "boundDataField": "location",
+              "sortable": false,
+              "children": []
+            },
+            {
+              "type": "button",
+              "label": "Save Event",
+              "boundDataField": "none",
+              "sortable": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "label": "Scheduled Events List",
+          "boundDataField": "date",
+          "sortable": true,
+          "children": []
+        }
+      ]
+    }
+  ],
+  "globalFeatures": [],
+  "dataFields": [
+    {
+      "name": "title",
+      "type": "string",
+      "enumValues": []
+    },
+    {
+      "name": "date",
+      "type": "date",
+      "enumValues": []
+    },
+    {
+      "name": "location",
+      "type": "string",
+      "enumValues": []
+    }
+  ],
+  "ambiguities": [
+    {
+      "phrase": "simple event scheduling app",
+      "assumption": "Assumed a single dashboard view containing both event creation form and event list."
+    }
+  ],
+  "unmappedRequests": [],
+  "originalRequirementText": "A simple event scheduling app where users can create events with a title, date, and location, and see them listed by date",
+  "approved": true,
+  "approved_at": "2026-09-21T19:22:18.898812+00:00"
+}

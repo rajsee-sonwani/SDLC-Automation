@@ -5,7 +5,7 @@ file_generator.py's job).
 """
 import json
 
-from services.llm_client import generate_structured
+from services.llm_client import append_developer_instructions, generate_structured
 from services.secure_file_ops import ALLOWED_PREFIXES
 
 RESPONSE_SCHEMA = {
@@ -39,7 +39,12 @@ Rules:
 """
 
 
-def plan_changes(feedback_text: str, existing_files: list[str], technology: str) -> dict:
+def plan_changes(
+    feedback_text: str,
+    existing_files: list[str],
+    technology: str,
+    developer_system_prompt: str | None = None,
+) -> dict:
     if technology not in ALLOWED_PREFIXES:
         raise ValueError(f"Unsupported technology: {technology!r}")
 
@@ -51,7 +56,7 @@ def plan_changes(feedback_text: str, existing_files: list[str], technology: str)
     return generate_structured(
         prompt=prompt,
         response_schema=RESPONSE_SCHEMA,
-        system_instruction=_system_prompt(technology),
+        system_instruction=append_developer_instructions(_system_prompt(technology), developer_system_prompt),
         temperature=0.2,
     )
 
